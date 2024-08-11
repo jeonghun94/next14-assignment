@@ -33,11 +33,11 @@ const checkUniqueEmail = async (email: string) => {
 const formSchema = z.object({
   username: z
     .string()
-    .min(3, "Username must be at least 5 characters")
+    .min(3, "Username must be at least 3 characters")
     .refine(checkUniqueUsername, "Username is already taken"),
   password: z
     .string()
-    .min(5, "Password must be at least 10 characters")
+    .min(5, "Password must be at least 5 characters")
     .regex(/\d/, "Password must include at least one digit"),
   email: z
     .string()
@@ -61,7 +61,7 @@ export async function handleForm(prevState: any, formData: FormData) {
     return result.error.flatten();
   } else {
     const hashedPassword = await bcrypt.hash(result.data.password, 12);
-    const user = await db.user.create({
+    await db.user.create({
       data: {
         username: result.data.username,
         email: result.data.email,
@@ -72,14 +72,6 @@ export async function handleForm(prevState: any, formData: FormData) {
       },
     });
 
-    const cookie = await getIronSession(cookies(), {
-      cookieName: "delicious-karrot",
-      password: process.env.COOKIE_PASSWORD!,
-    });
-
-    //@ts-ignore
-    cookie.id = user.id;
-    await cookie.save();
-    redirect("/profile");
+    redirect("/login");
   }
 }
