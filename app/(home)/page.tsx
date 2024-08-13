@@ -4,17 +4,23 @@ import Link from "next/link";
 import db from "@/libs/db";
 
 export default async function Home() {
-  async function getTweets(): Promise<Tweet[]> {
+  const pageSize = 3;
+  const page = 1;
+
+  async function getTweets(page: number): Promise<Tweet[]> {
     "use server";
     const session = await getSession();
+    const skip = (page - 1) * pageSize;
     return await db.tweet.findMany({
       where: {
         userId: session.id,
       },
+      skip,
+      take: pageSize,
     });
   }
 
-  const tweets = await getTweets();
+  const tweets = await getTweets(page);
 
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center gap-3 ">
@@ -29,6 +35,8 @@ export default async function Home() {
           <span>createdBy: {item.userId}</span>
         </Link>
       ))}
+
+      {tweets.length === 0 && <div>no tweet found</div>}
     </div>
   );
 }
